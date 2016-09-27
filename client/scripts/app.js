@@ -1,19 +1,19 @@
 // YOUR CODE HERE:
-$(document).ready(function() {
+$(document).ready(() => {
   app.init();
   app.fetch();
 
-  $('#submitRoom').on('click', function() {
+  $('#submitRoom').on('click', () => {
     var newRoom = $('#newRoom').val();
     app.renderRoom(newRoom);
   });
 
-  $('#refresh').on('click', function() {
+  $('#refresh').on('click', () => {
     app.clearMessages();
     app.fetch();
   });
 
-  $('#send').on('submit', function() {
+  $('#send').on('submit', () => {
     event.preventDefault();
     var username = document.URL.slice(_.lastIndexOf(document.URL, '=') + 1);
     var messageContent = $('#message').val();
@@ -37,46 +37,44 @@ $(document).ready(function() {
 
 });
 
-
-
 const app = {};
 
-app.init = function() {
+app.init = () => {
   app.server = 'https://api.parse.com/1/classes/messages';
   app.friends = [];
 };
 
-app.send = function(message) {
+app.send = (message) => {
   $.ajax({
     // This is the url you should use to communicate with the parse API server.
     url: app.server,
     type: 'POST',
     data: JSON.stringify(message),
     contentType: 'application/json',
-    success: function (data) {
+    success: (data) => {
       console.log('chatterbox: Message sent');
     },
-    error: function (data) {
+    error: (data) => {
       // See: https://developer.mozilla.org/en-US/docs/Web/API/console.error
       console.error('chatterbox: Failed to send message', data);
     }
   });
 };
 
-app.fetch = function () {
+app.fetch = () => {
   $.ajax({
   // This is the url you should use to communicate with the parse API server.
     url: app.server,
     type: 'GET',
     contentType: 'application/json',
     data: {limit: 100, order: '-createdAt'},
-    success: function (data) {
+    success: (data) => {
       // 'order=-updatedAt';
-      _.each(data.results, function(datum) {
+      _.each(data.results, (datum) => {
         app.renderMessage(datum);
       });
     },
-    error: function (data) {
+    error: (data) => {
       // See: https://developer.mozilla.org/en-US/docs/Web/API/console.error
       console.error('chatterbox: Failed to send message', data);
     }
@@ -84,50 +82,22 @@ app.fetch = function () {
 
 };
 
-app.clearMessages = function() {
-  // var chatsNode = document.getElementById('#chats');
-  // while (chatsNode.firstChild) {
-  //   console.log(chatsNode);
-  //   chatsNode.removeChild(chatsNode.firstChild);
-  // }
-  $('#chats').empty();
-};
+app.clearMessages = () => $('#chats').empty();
 
-app.renderMessage = function(message) {
+app.renderMessage = (message) => {
   var tweet;
   var user = $('<a class="tweetUser" href="#"></a>').text(message.username);
-  var time = $('<span class="tweetTime"></span>').text(message.updatedAt);
+  var time = $('<span class="tweetTime"></span>').text(`${jQuery.timeago(message.updatedAt)}`);
   var msg = $('<p class="tweetMessage"></p>').text(message.text);
-  if ((_.indexOf(app.friends, message.username) === -1)) {
-    $tweets = $('<div class="tweet"></div>').append(user).append(time).append(msg);
-  } else {
-    $tweets = $('<div class="tweet friend"></div>').append(user).append(time).append(msg);
+  $tweets = $('<div class="tweet"></div>').append(user).append(time).append(msg);
+  if ((_.indexOf(app.friends, message.username) !== -1)) {
+    $tweets.addClass('friend');
   }
   $('#chats').append($tweets);
 };
 
-app.renderRoom = function(roomName) {
+app.renderRoom = (roomName) => {
   var childLength = $('#roomSelect').children().length;
-  var newRoom = '<option value = "' + (childLength + 1) + '">' + roomName + '</option>';
-  var $newRoom = $(newRoom);
-  $('#roomSelect').append($newRoom);
+  var newRoom = `<option value = ${childLength + 1}>${roomName}</option>"`;
+  $('#roomSelect').append($(newRoom));
 };
-
-
-
-  // $('button').on('click', function() {
-  //   var username = document.URL.slice(_.lastIndexOf(document.URL, '=') + 1);
-  //   var messageContent = $('#messageContent').val();
-  //   var roomChoice = document.getElementById('roomChoice');
-  //   var roomSelected = roomChoice.options[roomChoice.selectedIndex].text;
-  //   var message = {
-  //     username: username,
-  //     text: messageContent,
-  //     roomname: roomSelected
-  //   };
-  //   app.send(message);
-  // });
-
-
-
-

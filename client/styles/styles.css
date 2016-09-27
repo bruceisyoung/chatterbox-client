@@ -12,6 +12,11 @@ body {
     background: white;
 }
 
+.tweet {
+    border-style: inset;
+    margin-bottom: 1px;
+}
+
 #main {
     padding: 50px 60px;
     border: solid #ddd;
