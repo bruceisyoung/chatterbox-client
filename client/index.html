@@ -35,13 +35,17 @@
         <select id="roomSelect">
         </select>
         <input type="text" id="newRoom" placeholder='new room name'>
-        <button id="submitRoom">NewRoom</button>
+        <button id="submitRoom">CreateRoom</button>
+        <button id="gotoNewRoom">GoToNewRoom</button>
         <button id="refresh">Refresh</button>
       </div>
       <form action="#" id="send" method="post">
         <input type="text" name="message" id="message"/>
         <input type="submit" name="submitMessage" id="submitMessage"/>
       </form>
+      <ul class="tab">
+        <li><a href="#" class="tablinks" onclick="openCity(event, 'London')">lobby</a></li>
+      </ul>
       <div id="chats"></div>
 
 

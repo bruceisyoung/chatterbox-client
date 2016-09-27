@@ -1,16 +1,32 @@
 // YOUR CODE HERE:
 $(document).ready(() => {
   app.init();
-  app.fetch();
+  //changed the way the call app.fetch;
+  app.fetch({roomname: 'lobby'});
 
   $('#submitRoom').on('click', () => {
     var newRoom = $('#newRoom').val();
-    app.renderRoom(newRoom);
+  //we need to find out whether the room has existed or not
+    if (!checkRoom(newRoom)) {
+      app.renderRoom(newRoom);
+    }
   });
 
   $('#refresh').on('click', () => {
     app.clearMessages();
     app.fetch();
+  });
+
+  $('#gotoNewRoom').on('click', () => {
+    var newRoom = $('#newRoom').val();
+    if (!checkRoom(newRoom)) {
+      app.renderRoom(newRoom);
+    }
+    if (!checkRoomTab(newRoom)) {
+      createRoomTab(newRoom);
+    }
+    console.log($('.tab').children());
+    console.log($('.tab').children().length);
   });
 
   $('#send').on('submit', () => {
@@ -34,7 +50,6 @@ $(document).ready(() => {
     app.clearMessages();
     app.fetch();
   });
-
 });
 
 const app = {};
@@ -42,6 +57,7 @@ const app = {};
 app.init = () => {
   app.server = 'https://api.parse.com/1/classes/messages';
   app.friends = [];
+  app.renderRoom('lobby');
 };
 
 app.send = (message) => {
@@ -61,13 +77,14 @@ app.send = (message) => {
   });
 };
 
-app.fetch = () => {
+app.fetch = (filterObject) => {
   $.ajax({
   // This is the url you should use to communicate with the parse API server.
     url: app.server,
     type: 'GET',
     contentType: 'application/json',
-    data: {limit: 100, order: '-createdAt'},
+    //data: {where: {roomname: 'lobby', username: 'sjfkdlsa'}, limit: 50, order: '-createdAt'},
+    data: {where: filterObject, limit: 50, order: '-createdAt'},
     success: (data) => {
       // 'order=-updatedAt';
       _.each(data.results, (datum) => {
@@ -101,3 +118,29 @@ app.renderRoom = (roomName) => {
   var newRoom = `<option value = ${childLength + 1}>${roomName}</option>"`;
   $('#roomSelect').append($(newRoom));
 };
+
+
+var checkRoom = (roomname) => {
+  var childLength = $('#roomSelect').children().length;
+  for (var i = 0; i < childLength; i++) {
+    if (roomname === $($('#roomSelect').children()[i]).text()) {
+      return true;
+    }  
+  }
+  return false;
+};
+
+var checkRoomTab = (roomname) => {
+  var childLength = $('.tab').children().length;
+  for (var i = 0; i < childLength; i++) {
+    if (roomname === $($('.tab').children()[i]).text()) {
+      return true;
+    }
+  }
+  return false;
+}
+
+var createRoomTab = (roomname) => {
+  newRoomTab = `<li><a href="#" class="tablinks" onclick="openCity(event, 'London')">${roomname}</a></li>`;
+  $('.tab').append($(newRoomTab));
+}
