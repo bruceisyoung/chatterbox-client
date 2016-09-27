@@ -1,5 +1,6 @@
 // YOUR CODE HERE:
 $(document).ready(function() {
+  app.init();
   app.fetch();
 
   $('#submitRoom').on('click', function() {
@@ -39,11 +40,10 @@ $(document).ready(function() {
 
 
 const app = {};
-app.server = 'https://api.parse.com/1/classes/messages';
-app.friends = [];
 
 app.init = function() {
-
+  app.server = 'https://api.parse.com/1/classes/messages';
+  app.friends = [];
 };
 
 app.send = function(message) {
