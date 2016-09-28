@@ -4,9 +4,12 @@ const app = {};
 app.init = () => {
   app.server = 'https://api.parse.com/1/classes/messages'; //store the server address
   app.friends = [];                   //create a global array to store friends
+  app.latestMessage = {};
+  app.latestTab = 'All';
+  app.renderRoom('All');
   app.renderRoom('lobby');            //make lobby the default room
-  $('.tab #lobby').addClass('active'); //make active as the default state of lobby in the tab area 
-  app.fetch({roomname: 'lobby'});
+  $('.tab #All').addClass('active'); //make active as the default state of lobby in the tab area 
+  app.fetch({roomname: $("#roomSelect").val()});
 };
 
 app.clearMessages = () => $('#chats').html('');
@@ -18,7 +21,6 @@ app.send = (message) => {                                           //notice the
     data: JSON.stringify(message),
     contentType: 'application/json',
     success: (data) => {
-      app.clearMessages();
       app.fetch({roomname: $("#roomSelect").val()});
     },
     error: (data) => {
@@ -28,28 +30,72 @@ app.send = (message) => {                                           //notice the
 };
 
 app.fetch = (filterObject) => {                                     //notice the format of ajax data request
+  var room = filterObject.roomname;
+  if (room === 'All') {
+    filterObject = {};
+  }
   $.ajax({
     url: app.server,
     type: 'GET',
     contentType: 'application/json',
-    data: {where: filterObject, limit: 50, order: '-createdAt'},    //data parse format: {where: {roomname: 'lobby', username: 'sjfkdlsa'}, limit: 50, order: '-createdAt'},
+    data: {where: filterObject, limit: 20, order: '-createdAt'},    //data parse format: {where: {roomname: 'lobby', username: 'sjfkdlsa'}, limit: 50, order: '-createdAt'},
     success: (data) => {
-      _.each(data.results, (datum) => {
-        app.renderMessage(datum);
-      });
+      if(data.results[0] === undefined) {
+        app.clearMessages();
+      } else if(app.latestMessage[room] == null || app.latestMessage[room] !== data.results[0].objectId || app.lastest !== room) {
+        app.clearMessages();
+        _.each(data.results, (datum) => {
+          app.renderMessage(datum);
+        });
+        app.latestMessage[room] = data.results[0].objectId;
+        app.latestTab = room;
+      }
+      $('#' + room).text(`${room}`);
     },
     error: (data) => {
-      console.error('chatterbox: Failed to send message', data);
+      console.error('chatterbox: Failed to fetch messages', data);
     }
   });
+};
 
+app.checkMessage = (filterObject) => {
+  var room = filterObject.roomname;
+  if (room === 'All') {
+    filterObject = {};
+  }
+  $.ajax({
+    url: app.server,
+    type: 'GET',
+    contentType: 'application/json',
+    data: {where: filterObject, limit: 20, order: '-createdAt'},
+    success: (data) => {
+      if(data.results[0] !== undefined && app.latestMessage[room] !== data.results[0].objectId) {
+        if ($(`#${filterObject.roomname}`).hasClass('active')) {
+          app.fetch(filterObject);
+        } else {
+          var newMessageCount = 0;
+          for (var i = 0; i < data.results.length; i++) {
+            if(app.latestMessage[room] === data.results[i].objectId) {
+              break;
+            } else {
+              newMessageCount++;
+            }
+          }
+          $('#' + room).text(`${room}(${newMessageCount})`);
+        }
+      }
+    },
+    error: (data) => {
+      console.error('chatterbox: Failed to check message status', data);
+    }
+  });
 };
 
 app.renderMessage = (message) => {
   var tweet;
   var user = $('<a class="tweetUser" href="#"></a>').text(message.username);
   var time = $('<span class="tweetTime"></span>').text(`${jQuery.timeago(message.updatedAt)}`);   //use timeage module to display the time in a user-friendly way
-  var msg = $('<p class="tweetMessage"></p>').text(message.text);
+  var msg = $('<br><span class="tweetMessage"></span>').text(message.text);
   $tweets = $('<div class="tweet"></div>').append(user).append(time).append(msg);
   if ((_.indexOf(app.friends, message.username) !== -1)) {
     $tweets.addClass('friend');
@@ -62,7 +108,7 @@ app.renderRoom = (roomName) => {
   $('#roomSelect').append($(newRoom));
 };
 
-var checkRoom = (roomname) => {
+var checkRoom = (roomname) => {           //check whether this room has been defined in the select
   var childLength = $('#roomSelect').children().length;
   for (var i = 0; i < childLength; i++) {
     if (roomname === $($('#roomSelect').children()[i]).text()) {
@@ -72,10 +118,10 @@ var checkRoom = (roomname) => {
   return false;
 };
 
-var checkRoomTab = (roomname) => {
+var checkRoomTab = (roomname) => {        //check whether this room has been created in the tab
   var childLength = $('.tab').children().length;
   for (var i = 0; i < childLength; i++) {
-    if (roomname === $($('.tab').children()[i]).text()) {
+    if ($($('.tab').children()[i]).attr('id') === roomname) {
       return true;
     }
   }
@@ -93,12 +139,11 @@ var setActive = (event, roomname) => {
   var childLength = $('.tab').children().length;
   for(var i = 0; i < childLength; i++) {
     $($($('.tab').children()[i]).children()[0]).removeClass('active');
-    if(roomname === $($('.tab').children()[i]).text()){
+    if($($($('.tab').children()[i]).children()[0]).attr('id') === roomname) {
       $($($('.tab').children()[i]).children()[0]).addClass('active');
     }
   }
   setSelectOption(roomname);
-  app.clearMessages();
   app.fetch({roomname: roomname});
 };
 
@@ -111,7 +156,6 @@ $(document).ready(() => {
   app.init();
 
   $('#refresh').on('click', () => {
-    app.clearMessages();
     app.fetch({roomname: $("#roomSelect").val()});
   });
 
@@ -146,8 +190,15 @@ $(document).ready(() => {
     if (_.indexOf(app.friends, $(this).text()) === -1) {
       app.friends.push($(this).text());
     }
-    app.clearMessages();
     app.fetch({roomname: $("#roomSelect").val()});
   });
+
+  setInterval(function() {
+    var liGroup = $('.tab').children();
+    for(var i = 0; i < liGroup.length; i++) {
+      var room = $($(liGroup[i]).children()[0]).attr('id');
+      app.checkMessage({roomname: room});
+    }
+  }, 60000);
 });
 
