@@ -35,8 +35,7 @@
         <select id="roomSelect">
         </select>
         <input type="text" id="newRoom" placeholder='new room name'>
-        <button id="submitRoom">CreateRoom</button>
-        <button id="gotoNewRoom">GoToNewRoom</button>
+        <button id="gotoRoom">JoinRoom</button>
         <button id="refresh">Refresh</button>
       </div>
       <form action="#" id="send" method="post">
@@ -44,22 +43,8 @@
         <input type="submit" name="submitMessage" id="submitMessage"/>
       </form>
       <ul class="tab">
-        <li><a href="#" class="tablinks" onclick="openCity(event, 'London')">lobby</a></li>
+        <li><a href="#" id="lobby" onclick="setActive(event, 'lobby')">lobby</a></li>
       </ul>
       <div id="chats"></div>
-
-
-<!--       <div>
-        <span>Room</span>
-        <select id="roomChoice">
-          <option value = "1">lobby</option>
-          <option value = "2">testing</option>
-          <option value = "3">space</option>
-        </select>
-      </div>
-      <input type="text" id="messageContent" placeholder="type your message here!">
-      <button id="submit">Submit</button> 
-
-    <div id="chats"></div> -->
   </body>
 </html>
