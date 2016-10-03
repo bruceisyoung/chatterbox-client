@@ -21,7 +21,7 @@ app.send = (message) => {                                           //notice the
     data: JSON.stringify(message),
     contentType: 'application/json',
     success: (data) => {
-      app.fetch({roomname: $("#roomSelect").val()});
+      app.fetch({roomname: $("#roomSelect").val()});                //
     },
     error: (data) => {
       console.error('chatterbox: Failed to send message', data);
@@ -40,15 +40,15 @@ app.fetch = (filterObject) => {                                     //notice the
     contentType: 'application/json',
     data: {where: filterObject, limit: 20, order: '-createdAt'},    //data parse format: {where: {roomname: 'lobby', username: 'sjfkdlsa'}, limit: 50, order: '-createdAt'},
     success: (data) => {
-      if(data.results[0] === undefined) {
-        app.clearMessages();
+      if(data.results[0] === undefined) {                           //if no message has been sent inside this current room
+        app.clearMessages();                                        //clear the message board
       } else if(app.latestMessage[room] == null || app.latestMessage[room] !== data.results[0].objectId || app.lastest !== room) {
-        app.clearMessages();
-        _.each(data.results, (datum) => {
-          app.renderMessage(datum);
-        });
-        app.latestMessage[room] = data.results[0].objectId;
-        app.latestTab = room;
+        app.clearMessages();                                        //if the room hasn't been created on the tab area and their messages hasn't been loaded before
+        _.each(data.results, (datum) => {                           //or the messages fetched last time and the currently received aren't the same
+          app.renderMessage(datum);                                 //or the tab displayed last time and this time aren't the same
+        });                                                         //clear the messages and display the new ones
+        app.latestMessage[room] = data.results[0].objectId;         //update the lastest messages loaded
+        app.latestTab = room;                                       //update the current tab
       }
       $('#' + room).text(`${room}`);
     },
